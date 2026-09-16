@@ -17,7 +17,7 @@ public class GrimSendAlert implements BuildableCommand {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("sendalert")
-                        .permission("grim.sendalert")
+                        .permission("olympia.sendalert")
                         .required("message", StringParser.greedyStringParser())
                         .handler(this::handleSendAlert)
         );

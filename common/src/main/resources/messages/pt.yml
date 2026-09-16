@@ -1,5 +1,5 @@
 # \u00BB é » (>> duplo), ANSI e UTF-8 interpretam isso diferentemente... você pode acabar vendo '?' por conta disso.
-prefix: "&bGrim &8\u00BB"
+prefix: "&6Olympia &8\u00BB"
 
 alerts-enabled: "%prefix% &fAlertas habilitados."
 alerts-disabled: "%prefix% &fAlertas desabilitados."

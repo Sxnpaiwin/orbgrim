@@ -10,6 +10,15 @@ plugins {
     id("xyz.jpenilla.run-paper") version "3.0.0-beta.1"
 }
 
+// Olympia fork: distinct jar filename so both jars can sit side by side.
+base {
+    archivesName.set("olympiaac-bukkit")
+}
+
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+    archiveBaseName.set("olympiaac-bukkit")
+}
+
 repositories {
     val localOverride = if (BuildConfig.mavenLocalOverride) mavenLocal() else null
 
@@ -133,7 +142,7 @@ dependencies {
 }
 
 bukkit {
-    name = "GrimAC"
+    name = "OlympiaAC"
     author = "GrimAC"
     main = "ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin"
     website = "https://grim.ac/"
@@ -166,73 +175,78 @@ bukkit {
     )
 
     permissions {
-        register("grim.alerts") {
+        register("olympia.alerts") {
             description = "Receive alerts for violations"
             default = Permission.Default.OP
         }
 
-        register("grim.alerts.enable-on-join") {
+        register("olympia.alerts.enable-on-join") {
             description = "Enable alerts on join"
             default = Permission.Default.OP
         }
 
-        register("grim.performance") {
+        register("olympia.logs") {
+            description = "Open the Olympia flag log GUI"
+            default = Permission.Default.OP
+        }
+
+        register("olympia.performance") {
             description = "Check performance metrics"
             default = Permission.Default.OP
         }
 
-        register("grim.profile") {
+        register("olympia.profile") {
             description = "Check user profile"
             default = Permission.Default.OP
         }
 
-        register("grim.brand") {
+        register("olympia.brand") {
             description = "Show client brands on join"
             default = Permission.Default.OP
         }
 
-        register("grim.brand.enable-on-join") {
+        register("olympia.brand.enable-on-join") {
             description = "Enable showing client brands on join"
             default = Permission.Default.OP
         }
 
-        register("grim.sendalert") {
+        register("olympia.sendalert") {
             description = "Send cheater alert"
             default = Permission.Default.OP
         }
 
-        register("grim.nosetback") {
+        register("olympia.nosetback") {
             description = "Disable setback"
             default = Permission.Default.FALSE
         }
 
-        register("grim.nomodifypacket") {
+        register("olympia.nomodifypacket") {
             description = "Disable modifying packets"
             default = Permission.Default.FALSE
         }
 
-        register("grim.disabled") {
+        register("olympia.disabled") {
             description = "Disable Grim checks while keeping player state tracked"
             default = Permission.Default.FALSE
         }
 
-        register("grim.exempt") {
+        register("olympia.exempt") {
             description = "Exempt from all checks"
             default = Permission.Default.FALSE
         }
 
-        register("grim.verbose") {
+        register("olympia.verbose") {
             description = "Receive verbose alerts for violations"
             default = Permission.Default.OP
         }
 
-        register("grim.verbose.enable-on-join") {
+        register("olympia.verbose.enable-on-join") {
             description =
                 "Enable verbose alerts on join"
             default = Permission.Default.FALSE
         }
 
-        register("grim.list") {
+        register("olympia.list") {
             description =
                 "Shows lists of specific data"
             default = Permission.Default.FALSE

@@ -24,9 +24,9 @@ public class GrimStopSpectating implements BuildableCommand {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("stopspectating")
-                        .permission("grim.spectate")
+                        .permission("olympia.spectate")
                         .optional("here", StringParser.stringParser(), SuggestionProvider.blocking((ctx, in) -> {
-                            if (ctx.sender().hasPermission("grim.spectate.stophere")) {
+                                        if (ctx.sender().hasPermission("olympia.spectate.stophere")) {
                                 return List.of(Suggestion.suggestion("here"));
                             }
                             return List.of(); // No suggestions if no permission

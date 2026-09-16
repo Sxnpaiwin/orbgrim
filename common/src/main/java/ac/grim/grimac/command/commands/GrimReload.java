@@ -16,7 +16,7 @@ public class GrimReload implements BuildableCommand {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("reload")
-                        .permission("grim.reload")
+                        .permission("olympia.reload")
                         .handler(this::handleReload)
         );
     }

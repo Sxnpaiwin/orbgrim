@@ -21,7 +21,7 @@ public class GrimProfile implements BuildableCommand {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("profile")
-                        .permission("grim.profile")
+                        .permission("olympia.profile")
                         .required("target", arguments.singlePlayerSelectorParser())
                         .handler(this::handleProfile)
         );

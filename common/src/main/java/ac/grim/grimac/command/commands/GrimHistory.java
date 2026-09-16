@@ -87,7 +87,7 @@ public class GrimHistory implements BuildableCommand {
                         .literal("history", "hist")
                         .literal("repair")
                         .literal("check-ids")
-                        .permission("grim.history.repair")
+                        .permission("olympia.history.repair")
                         .handler(this::handleRepairCheckIds)
         );
 
@@ -114,7 +114,7 @@ public class GrimHistory implements BuildableCommand {
         java.util.function.Supplier<Command.Builder<Sender>> base = () -> {
             Command.Builder<Sender> b = commandManager.commandBuilder("grim", "grimac")
                     .literal("history", "hist")
-                    .permission("grim.history");
+                    .permission("olympia.history");
             if (withPlayerLiteral) b = b.literal("player");
             return b.required("target", StringParser.stringParser(), targetSuggestions);
         };

@@ -20,7 +20,7 @@ public class GrimBrands implements BuildableCommand {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("brands", Description.of("Toggle brands for the sender"))
-                        .permission("grim.brand")
+                        .permission("olympia.brand")
                         .handler(this::handleBrands)
         );
     }

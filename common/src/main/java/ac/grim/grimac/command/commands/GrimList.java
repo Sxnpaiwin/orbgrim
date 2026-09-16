@@ -32,7 +32,7 @@ public class GrimList implements BuildableCommand {
     public void register(CommandManager<Sender> commandManager, CloudPlatformCommandArguments arguments) {
         commandManager.command(commandManager.commandBuilder("grim", "grimac")
                 .literal("list")
-                .permission("grim.list")
+                .permission("olympia.list")
                 .required("list", StringParser.stringParser(), SUGGESTIONS)
                 .handler(commandContext -> handleList(commandContext.sender(), commandContext.getOrDefault("list", "?").toLowerCase()))
                 .build());

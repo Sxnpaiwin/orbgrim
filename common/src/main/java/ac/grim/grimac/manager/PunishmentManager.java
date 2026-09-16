@@ -129,6 +129,14 @@ public class PunishmentManager implements ConfigReloadable {
     public boolean handleAlert(GrimPlayer player, Supplier<String> verbose, Check check) {
         boolean sentDebug = false;
 
+        // Olympia debug feed: record every flag that reaches the alert pipeline.
+        try {
+            FlagFeed.INSTANCE.record(player.getUniqueId(), player.getName(),
+                    check.getCheckName(), safeGet(verbose), (int) check.getViolations());
+        } catch (Exception ignored) {
+            // The feed must never break flagging.
+        }
+
         // Check commands
         for (PunishGroup group : groups) {
             if (group.checks.contains(check)) {

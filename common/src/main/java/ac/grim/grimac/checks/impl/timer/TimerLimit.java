@@ -20,7 +20,7 @@ public class TimerLimit extends Timer {
     @Override
     public void doCheck(final PacketReceiveEvent event) {
         // 1:1 with Timer minus cancelling the packet
-        if (timerBalanceRealTime > System.nanoTime()) {
+        if (timerBalanceRealTime > System.nanoTime() + thresholdNs) {
             // If timer check already flagged, don't flag.
             if (!event.isCancelled()) {
                 if (flag() && shouldSetback()) {
@@ -28,8 +28,8 @@ public class TimerLimit extends Timer {
                 }
             }
 
-            // Reset the violation by 1 movement
-            timerBalanceRealTime -= 50e6;
+            // Drain MORE than one packet credits (see Timer): recover, don't storm.
+            timerBalanceRealTime -= 100e6;
         }
 
         limitFallBehind();

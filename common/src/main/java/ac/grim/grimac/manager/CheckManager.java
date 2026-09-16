@@ -7,6 +7,32 @@ import ac.grim.grimac.api.common.BasicReloadable;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
+import ac.grim.grimac.checks.impl.aim.mx.AimEntropyMX;
+import ac.grim.grimac.checks.impl.aim.mx.AimHeuristicsMX;
+import ac.grim.grimac.checks.impl.aim.mx.AimMLMX;
+import ac.grim.grimac.checks.impl.aim.mx.SensitivityMX;
+import ac.grim.grimac.checks.impl.aim.iv.AccuracyIV;
+import ac.grim.grimac.checks.impl.aim.iv.AimStdevIV;
+import ac.grim.grimac.checks.impl.aim.iv.AttackRequiredIV;
+import ac.grim.grimac.checks.impl.aim.iv.BlockingIV;
+import ac.grim.grimac.checks.impl.aim.iv.CivbreakIV;
+import ac.grim.grimac.checks.impl.aim.iv.ClickBurstsIV;
+import ac.grim.grimac.checks.impl.aim.iv.ClickDeviationIV;
+import ac.grim.grimac.checks.impl.aim.iv.ClickEntropyIV;
+import ac.grim.grimac.checks.impl.aim.iv.ClickFluctuationIV;
+import ac.grim.grimac.checks.impl.aim.iv.ClickKurtosisIV;
+import ac.grim.grimac.checks.impl.aim.iv.ClickRepetitiveIV;
+import ac.grim.grimac.checks.impl.aim.iv.ClickSpeedIV;
+import ac.grim.grimac.checks.impl.aim.iv.FakeLagIV;
+import ac.grim.grimac.checks.impl.aim.iv.CornerAimIV;
+import ac.grim.grimac.checks.impl.aim.iv.ExactAimIV;
+import ac.grim.grimac.checks.impl.aim.iv.FollowAimIV;
+import ac.grim.grimac.checks.impl.aim.iv.ModuloResetIV;
+import ac.grim.grimac.checks.impl.aim.iv.PreAttackIV;
+import ac.grim.grimac.checks.impl.aim.iv.SentSlotIV;
+import ac.grim.grimac.checks.impl.aim.iv.SnapAimIV;
+import ac.grim.grimac.checks.impl.aim.iv.ToolSwitchIV;
+import ac.grim.grimac.checks.impl.aim.iv.TriggerbotIV;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.breaking.*;
@@ -116,6 +142,8 @@ public class CheckManager implements BasicReloadable {
         // TODO: migrate the rest of these to pre-via
                 .put(PacketOrderProcessor.class, player.packetOrderProcessor)
                 .put(Reach.class, new Reach(player))
+                .put(NoSwing.class, new NoSwing(player))
+                .put(SwingOrder.class, new SwingOrder(player))
                 .put(PacketEntityReplication.class, player.packetEntityReplication)
                 .put(PacketChangeGameState.class, new PacketChangeGameState(player))
                 .put(CompensatedInventory.class, player.inventory)
@@ -159,6 +187,32 @@ public class CheckManager implements BasicReloadable {
                 .put(AimProcessor.class, new AimProcessor(player))
                 .put(AimModulo360.class, new AimModulo360(player))
                 .put(AimDuplicateLook.class, new AimDuplicateLook(player))
+                .put(AimEntropyMX.class, new AimEntropyMX(player))
+                .put(AimHeuristicsMX.class, new AimHeuristicsMX(player))
+                .put(AimMLMX.class, new AimMLMX(player))
+                .put(SensitivityMX.class, new SensitivityMX(player))
+                .put(AccuracyIV.class, new AccuracyIV(player))
+                .put(AimStdevIV.class, new AimStdevIV(player))
+                .put(CornerAimIV.class, new CornerAimIV(player))
+                .put(ExactAimIV.class, new ExactAimIV(player))
+                .put(FollowAimIV.class, new FollowAimIV(player))
+                .put(ModuloResetIV.class, new ModuloResetIV(player))
+                .put(SnapAimIV.class, new SnapAimIV(player))
+                .put(AttackRequiredIV.class, new AttackRequiredIV(player))
+                .put(PreAttackIV.class, new PreAttackIV(player))
+                .put(ToolSwitchIV.class, new ToolSwitchIV(player))
+                .put(SentSlotIV.class, new SentSlotIV(player))
+                .put(CivbreakIV.class, new CivbreakIV(player))
+                .put(BlockingIV.class, new BlockingIV(player))
+                .put(ClickSpeedIV.class, new ClickSpeedIV(player))
+                .put(ClickDeviationIV.class, new ClickDeviationIV(player))
+                .put(ClickEntropyIV.class, new ClickEntropyIV(player))
+                .put(ClickKurtosisIV.class, new ClickKurtosisIV(player))
+                .put(ClickFluctuationIV.class, new ClickFluctuationIV(player))
+                .put(ClickRepetitiveIV.class, new ClickRepetitiveIV(player))
+                .put(ClickBurstsIV.class, new ClickBurstsIV(player))
+                .put(TriggerbotIV.class, new TriggerbotIV(player))
+                .put(FakeLagIV.class, new FakeLagIV(player))
                 .put(VehiclePredictionRunner.class, new VehiclePredictionRunner(player))
 
                 .put(NegativeTimer.class, new NegativeTimer(player))
@@ -443,9 +497,9 @@ public class CheckManager implements BasicReloadable {
         registerBuiltInVerboseTemplates();
 
         final String[] permissions = {
-                "grim.exempt.",
-                "grim.nosetback.",
-                "grim.nomodifypacket.",
+                "olympia.exempt.",
+                "olympia.nosetback.",
+                "olympia.nomodifypacket.",
         };
 
         for (final AbstractCheck check : checks) {

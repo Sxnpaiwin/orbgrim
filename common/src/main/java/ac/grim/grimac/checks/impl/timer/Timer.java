@@ -22,6 +22,13 @@ public class Timer extends Check implements PrePredictionPacketReceiveListener {
     // Default: 120 milliseconds
     protected long clockDrift;
 
+    // Ceiling slack: balance must exceed real time by this much to flag (nanos).
+    // Upstream used a zero-nanosecond ceiling, so one double-counted tick ratcheted
+    // the balance ahead permanently and every later legit packet flagged forever
+    // (AFK-in-water storm). Default 40ms: sustained 1.01 timer still trips in ~80
+    // ticks, single jitter costs one flag at most.
+    protected long thresholdNs;
+
     protected boolean hasGottenMovementAfterTransaction = false;
 
     // Proof for this timer check
@@ -72,7 +79,7 @@ public class Timer extends Check implements PrePredictionPacketReceiveListener {
     }
 
     public void doCheck(final PacketReceiveEvent event) {
-        if (timerBalanceRealTime > System.nanoTime()) {
+        if (timerBalanceRealTime > System.nanoTime() + thresholdNs) {
             if (flag()) {
                 // Cancel the packet
                 if (shouldModifyPackets()) {
@@ -85,8 +92,9 @@ public class Timer extends Check implements PrePredictionPacketReceiveListener {
                 }
             }
 
-            // Reset the violation by 1 movement
-            timerBalanceRealTime -= 50e6;
+            // Drain MORE than one packet credits (50ms): an ahead balance recovers
+            // instead of flagging every later legit packet forever.
+            timerBalanceRealTime -= 100e6;
         }
 
         limitFallBehind();
@@ -109,5 +117,6 @@ public class Timer extends Check implements PrePredictionPacketReceiveListener {
     @Override
     public void onReload(@NotNull ConfigManager config) {
         clockDrift = (long) (config.getDoubleElse(getConfigName() + ".drift", 120.0) * 1e6);
+        thresholdNs = (long) (config.getDoubleElse(getConfigName() + ".threshold-ms", 40.0) * 1e6);
     }
 }

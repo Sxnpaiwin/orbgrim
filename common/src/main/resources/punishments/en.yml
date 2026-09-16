@@ -109,14 +109,26 @@ Punishments:
     checks:
       - "Interact"
       - "Aim"
+      - "Swing"
+      - "SensitivityMX"
+      - "AccuracyIV"
+      - "ModuloResetIV"
+      - "AttackRequiredIV"
+      - "PreAttackIV"
+      - "ToolSwitchIV"
+      - "SentSlotIV"
+      - "CivbreakIV"
+      - "BlockingIV"
+      - "TriggerbotIV"
+      - "FakeLagIV"
     commands:
       - "20:40 [alert]"
       - "1:1 [log]"
-  # As of 2.2.10, there are no AutoClicker checks and this is a placeholder. Grim will include AutoClicker checks in the future.
   Autoclicker:
     remove-violations-after: 300
     checks:
       - "Autoclicker"
+      - "Click"
     commands:
       - "20:40 [alert]"
       - "1:1 [log]"

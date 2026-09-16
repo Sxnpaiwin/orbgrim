@@ -143,6 +143,10 @@ TimerA:
     # Milliseconds that the player can accumulate for later use when they fall behind
     # Could potentially allow 1.8 fast use/fast heal/fast bow bypasses if set too high, 120 ms seems like a good balance
     drift: 120
+    # How far ahead of real time the packet clock may run before flagging.
+    # Zero caused infinite flag storms from a single double-counted tick (e.g. AFK in water);
+    # 40ms still catches sustained 1.01 timer within ~80 ticks.
+    threshold-ms: 40
 
 # This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
 TimerLimit:
@@ -150,6 +154,8 @@ TimerLimit:
     # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
     # -1 to disable
     ping-abuse-limit-threshold: 1000
+    # Same ceiling slack as TimerA (see above).
+    threshold-ms: 40
 
 NegativeTimer:
     # Number of milliseconds lost while moving before we should start flagging
@@ -181,6 +187,15 @@ Reach:
     # Leaving this disabled will still catch cheaters and will not cause false positives
     # Unless you are a 1.8 PvP focused server, this additional packet is not recommended
     enable-post-packet: false
+
+# Combat swing checks (independent Grim-native implementations mirroring NoSwingBreak).
+# NoSwing flags attacks with no arm-swing in this or the last tick; SwingOrder flags
+# a second attack with no swing in between. Both experimental: require
+# 'experimental-checks' above to flag.
+NoSwing:
+    enable: true
+SwingOrder:
+    enable: true
 
 exploit:
     # You can gain high speeds when sprint jumping with an elytra, this prevents the exploit when set to false
@@ -227,6 +242,84 @@ max-ping-firework-boost: 1000
 # Fabric context gaps, or a non-LuckPerms permission provider that changes live.
 # Set to -1 to disable polling. Set to a positive value to refresh every X ticks.
 update-permission-ticks: -1
+
+# MX-Project aim layer (ported heuristics/statistics, PacketEvents-native).
+# Both checks are experimental: enable 'experimental-checks' above plus these toggles.
+# Thresholds mirror MX defaults; tighten only after watching alerts on your playerbase.
+MX:
+  aim-entropy:
+    enable: true
+    iqr-low: 12.5
+    iqr-high: 96.0
+    iqr-vl-limit: 11.0
+  aim-heuristics:
+    enable: true
+    robotized-threshold: 8
+    constant-threshold: 6
+    vl-limit: 400.0
+  # MX machine-learning check (7 statistical models + Bi-LSTM RNN, bundled weights).
+  # Inference runs on a background thread; missing/corrupt weights disable that
+  # model only. No training or dataset recording in the Grim port (inference only).
+  aim-ml:
+    enable: true
+
+# Intave combat layer (ported heuristics, PacketEvents-native).
+# All checks are experimental: enable 'experimental-checks' above plus these toggles.
+# Thresholds mirror Intave defaults; tighten only after watching alerts on your playerbase.
+Intave:
+  sensitivity:
+    enable: true
+  exact-aim:
+    enable: true
+  accuracy:
+    enable: true
+  corner-aim:
+    enable: true
+  aim-stdev:
+    enable: true
+  follow-aim:
+    enable: true
+  modulo-reset:
+    enable: true
+  snap-aim:
+    enable: true
+  attack-required:
+    enable: true
+  pre-attack:
+    enable: true
+  tool-switch:
+    enable: true
+  sent-slot-twice:
+    enable: true
+    vl: 100
+  civbreak:
+    enable: true
+  blocking:
+    enable: true
+  click-speed:
+    enable: true
+    max-cps: 20
+  click-deviation:
+    enable: true
+  click-entropy:
+    enable: true
+  click-kurtosis:
+    enable: true
+  click-fluctuation:
+    enable: true
+  click-repetitive:
+    enable: true
+  click-bursts:
+    enable: true
+  triggerbot:
+    enable: true
+    max-mean-ms: 130
+    max-stddev-ms: 45
+  fakelag:
+    enable: true
+    cancel-hits: true
+    chi2: 15
+    desync-fraction: 0.5
 
 # Schema markers — touch only if you know what you're doing.
 #   config-flavor:  V2 = Grim 2.x build, V3 = Grim 3.x. The plugin refuses

@@ -48,7 +48,7 @@ public class GrimHistoryMigrate implements BuildableCommand {
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("history")
                         .literal("migrate")
-                        .permission("grim.history.migrate")
+                        .permission("olympia.history.migrate")
                         .flag(commandManager.flagBuilder("delete")
                                 .withDescription(org.incendo.cloud.description.Description.of(
                                         "Drop the legacy v0 tables after migration completes")))
