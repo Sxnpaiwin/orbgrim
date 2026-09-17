@@ -68,6 +68,12 @@ public class AimMLMX extends Check implements RotationListener, PacketReceiveLis
     private final List<Float> pitchDeltas = new ArrayList<>(LEGACY_WINDOW + 4);
 
     private long lastAttackMillis = 0L;
+    // Spartan cj: refreshes only on gated (attack-window, nonzero) rotations.
+    // The stale check below replicates Spartan M(): buffers freeze across short
+    // attack pauses instead of being wiped, and clear only when resuming after
+    // >3s without gated rotation. Wiping on every attack gap cost up to a full
+    // 150-delta window (~7s) behind Spartan per pause, plus phase-shifted windows.
+    private long lastGatedRotationMillis = 0L;
     // Spartan dual RNN buffers: sustained suspiciousness trips, lone windows don't.
     private double rnnBuf1;
     private double rnnBuf2;
@@ -103,17 +109,24 @@ public class AimMLMX extends Check implements RotationListener, PacketReceiveLis
                 || player.packetStateData.horseInteractCausedForcedRotation) {
             return;
         }
-        if (System.currentTimeMillis() > lastAttackMillis + ATTACK_WINDOW_MS) {
-            if (!yawDeltas.isEmpty()) {
-                yawDeltas.clear();
-                pitchDeltas.clear();
-            }
+        long now = System.currentTimeMillis();
+        // Spartan M(): resume-after-silence clears everything (deltas + RNN buffers).
+        if (lastGatedRotationMillis > 0L && now - lastGatedRotationMillis > ATTACK_WINDOW_MS) {
+            yawDeltas.clear();
+            pitchDeltas.clear();
+            rnnBuf1 = 0;
+            rnnBuf2 = 0;
+            lastGatedRotationMillis = 0L;
+        }
+        // Attack gate shut: freeze buffers, do NOT wipe (Spartan-equivalent).
+        if (now > lastAttackMillis + ATTACK_WINDOW_MS) {
             return;
         }
 
         float dx = rotationUpdate.deltaYaw();
         float dy = rotationUpdate.deltaPitch();
         if (dx == 0 && dy == 0) return;
+        lastGatedRotationMillis = now;
 
         ensureModelsLoaded();
 
