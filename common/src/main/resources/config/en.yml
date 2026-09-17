@@ -321,6 +321,15 @@ Intave:
     chi2: 15
     desync-fraction: 0.5
 
+# Cartcore-inspired original checks (version-agnostic, PacketEvents-native).
+GlidePitch:
+    enable: true
+PlaceMacro:
+    enable: true
+# Combat swap-macro automation (sandwich regularity + bracket runs + fall cycles).
+SwapMacro:
+    enable: true
+
 # Schema markers — touch only if you know what you're doing.
 #   config-flavor:  V2 = Grim 2.x build, V3 = Grim 3.x. The plugin refuses
 #                   to load a config whose flavor doesn't match its own

@@ -7,6 +7,7 @@ import ac.grim.grimac.api.common.BasicReloadable;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
+import ac.grim.grimac.checks.impl.aim.GlidePitch;
 import ac.grim.grimac.checks.impl.aim.mx.AimEntropyMX;
 import ac.grim.grimac.checks.impl.aim.mx.AimHeuristicsMX;
 import ac.grim.grimac.checks.impl.aim.mx.AimMLMX;
@@ -144,6 +145,8 @@ public class CheckManager implements BasicReloadable {
                 .put(Reach.class, new Reach(player))
                 .put(NoSwing.class, new NoSwing(player))
                 .put(SwingOrder.class, new SwingOrder(player))
+                .put(PlaceMacro.class, new PlaceMacro(player))
+                .put(SwapMacro.class, new SwapMacro(player))
                 .put(PacketEntityReplication.class, player.packetEntityReplication)
                 .put(PacketChangeGameState.class, new PacketChangeGameState(player))
                 .put(CompensatedInventory.class, player.inventory)
@@ -187,6 +190,7 @@ public class CheckManager implements BasicReloadable {
                 .put(AimProcessor.class, new AimProcessor(player))
                 .put(AimModulo360.class, new AimModulo360(player))
                 .put(AimDuplicateLook.class, new AimDuplicateLook(player))
+                .put(GlidePitch.class, new GlidePitch(player))
                 .put(AimEntropyMX.class, new AimEntropyMX(player))
                 .put(AimHeuristicsMX.class, new AimHeuristicsMX(player))
                 .put(AimMLMX.class, new AimMLMX(player))

@@ -13,10 +13,14 @@ import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Olympia log GUI entry points: {@code /olympia [player]} and {@code /grim logs [player]}.
+ * Olympia log GUI entry points: {@code /olympia [player]} and {@code /grim gui [player]}.
  * No target opens the recent-offenders overview; a name jumps straight to that player.
  * Console receives an error — the GUI needs an in-game viewer (use the export files or
  * {@code /grim history} from console instead).
+ *
+ * <p>Note: the grim-side literal is {@code gui}, not {@code logs} — Cloud rejects
+ * prefix-overlapping sibling literals, and Grim's own {@code log} command already
+ * owns that prefix.</p>
  */
 public class OlympiaLogs implements BuildableCommand {
 
@@ -24,19 +28,13 @@ public class OlympiaLogs implements BuildableCommand {
     public void register(CommandManager<Sender> commandManager, CloudPlatformCommandArguments arguments) {
         commandManager.command(
                 commandManager.commandBuilder("olympia")
-                        .literal("logs", Description.of("Open the Olympia flag log GUI"))
                         .optional("target", StringParser.stringParser())
                         .permission("olympia.logs")
                         .handler(this::handle)
         );
         commandManager.command(
-                commandManager.commandBuilder("olympia")
-                        .permission("olympia.logs")
-                        .handler(this::handle)
-        );
-        commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
-                        .literal("logs", Description.of("Open the Olympia flag log GUI"))
+                        .literal("gui", Description.of("Open the Olympia flag log GUI"))
                         .optional("target", StringParser.stringParser())
                         .permission("olympia.logs")
                         .handler(this::handle)
