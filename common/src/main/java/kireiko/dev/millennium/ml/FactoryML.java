@@ -30,7 +30,9 @@ public class FactoryML {
         Millennium m;
         switch (ver) {
             case VERSION_5:
-                m = new RNNModelML(16, 48);
+                // Spartan registry arch (m1/m2/m3-rnn weights); NOT interchangeable
+                // with MX's (16,48) m1-rnn — the .dat arch check enforces the match.
+                m = new RNNModelML(16, 32);
                 break;
             default:
                 m = new ModelML(tableSize, stackSize);
@@ -65,7 +67,7 @@ public class FactoryML {
         try (InputStream is = FactoryML.class.getResourceAsStream(path)) {
             if (is != null) {
                 if (ver == ModelVer.VERSION_5) {
-                    RNNModelML m = new RNNModelML(16, 48);
+                    RNNModelML m = new RNNModelML(16, 32);
                     m.load(is);
                     CACHE.put(id, m);
                     Logger.info("Model loaded from JAR: " + name);

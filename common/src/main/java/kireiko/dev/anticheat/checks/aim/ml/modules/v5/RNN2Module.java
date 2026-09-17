@@ -6,14 +6,13 @@ import kireiko.dev.millennium.ml.data.module.ModuleML;
 import kireiko.dev.millennium.ml.data.module.ModuleResultML;
 import kireiko.dev.millennium.ml.logic.ModelVer;
 
-public class RNN1Module implements ModuleML {
-
-    public static final String co = "m1-rnn";
-    public static final double cp = 5.0;
+public class RNN2Module implements ModuleML {
+    public static final String co = "m2-rnn";
+    public static final double cp = 3.0;
 
     @Override
     public String getName() {
-        return "m1-rnn";
+        return "m2-rnn";
     }
 
     @Override
@@ -37,13 +36,13 @@ public class RNN1Module implements ModuleML {
     public static float a(FlagType type) {
         switch (type) {
             case SUSPECTED:
-                return 1.5F;
+                return 1.4F;
             case STRANGE:
                 return 1.0F;
             case UNUSUAL:
-                return 0.5F;
+                return 0.8F;
             default:
-                return -0.7F;
+                return -0.5F;
         }
     }
 

@@ -15,7 +15,7 @@ public class ClientML {
 
     public static final boolean DEV_MODE = false;
 
-    public static final String CLIENT_NAME = "quark-e-4.0-100k-mini";
+    public static final String CLIENT_NAME = "quark-e-4.0-131k-a37k-moe";
     private static final int TABLE_SIZE = 2;
 
     public static final List<ModuleML> MODEL_LIST = Arrays.asList(
@@ -26,7 +26,9 @@ public class ClientML {
                     new M5Module(),
                     new MHuge1Module(),
                     new MHuge2Module(),
-                    new RNN1Module()
+                    new RNN1Module(),
+                    new RNN2Module(),
+                    new RNN3Module()
     );
 
     public void run() {

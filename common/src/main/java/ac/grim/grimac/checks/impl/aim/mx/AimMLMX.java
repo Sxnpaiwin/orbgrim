@@ -11,6 +11,8 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import kireiko.dev.anticheat.checks.aim.ml.modules.v5.RNN1Module;
+import kireiko.dev.anticheat.checks.aim.ml.modules.v5.RNN2Module;
 import kireiko.dev.millennium.ml.ClientML;
 import kireiko.dev.millennium.ml.FactoryML;
 import kireiko.dev.millennium.ml.data.ObjectML;
@@ -28,21 +30,21 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Grim-native port of MX-Project's {@code AimMLCheck} (Unlicense, Kireiko).
+ * Grim-native port of the Spartan/MX {@code AimMLCheck} family (Unlicense, Kireiko).
  *
- * <p>Buffers rotation deltas during combat and runs them through MX's 8 trained models
- * (7 legacy statistical tables + 1 Bi-LSTM RNN, weights bundled under {@code /ml/*.dat})
+ * <p>Buffers rotation deltas during combat and runs them through 10 trained models
+ * (7 legacy statistical tables + 3 Bi-LSTM RNNs, weights bundled under {@code /ml/*.dat})
  * on a background thread. This is the check that catches humanized/temporal auras whose
  * per-packet statistics look clean but whose aim <i>rhythm</i> over hundreds of rotations
  * matches learned cheat distributions.</p>
  *
  * <p>Faithful to upstream: 600-delta window for legacy models, 150-delta window for the
- * RNN, 3s post-attack gating, max-severity aggregation across models. Deviations:
- * ProtocolLib events replaced by PacketEvents + Grim's compensated {@link RotationUpdate};
- * punish/VL replaced by Grim {@code flag()}/{@code reward()}; dataset recording and
- * on-server training are not ported (inference only); models load once globally from
- * bundled resources and a missing model is skipped rather than replaced with random
- * weights.</p>
+ * RNNs, 3s post-attack gating, Spartan triple-channel aggregation (legacy max-severity
+ * plus the m1-rnn/m2-rnn persistence buffers). Deviations: ProtocolLib events replaced
+ * by PacketEvents + Grim's compensated {@link RotationUpdate}; punish/VL replaced by
+ * Grim {@code flag()}/{@code reward()}; dataset recording and on-server training are
+ * not ported (inference only); models load once globally from bundled resources and a
+ * missing model is skipped rather than replaced with random weights.</p>
  */
 @CheckData(
         name = "AimMLMX",
@@ -56,7 +58,7 @@ public class AimMLMX extends Check implements RotationListener, PacketReceiveLis
     private static final int LEGACY_WINDOW = 600;
     private static final int RNN_WINDOW = 150;
     private static final int LEGACY_MODEL_COUNT = 7;
-    private static final int RNN_MODEL_INDEX = 7;
+    private static final int RNN_FIRST_INDEX = 7;
     private static final long ATTACK_WINDOW_MS = 3000L;
 
     /** Models are global (shared across players), exactly like MX's static FactoryML cache. */
@@ -66,6 +68,9 @@ public class AimMLMX extends Check implements RotationListener, PacketReceiveLis
     private final List<Float> pitchDeltas = new ArrayList<>(LEGACY_WINDOW + 4);
 
     private long lastAttackMillis = 0L;
+    // Spartan dual RNN buffers: sustained suspiciousness trips, lone windows don't.
+    private double rnnBuf1;
+    private double rnnBuf2;
     // Local kill-switch. Do NOT use Check.setEnabled here: PunishmentManager owns
     // that flag (Combat punish group matches "Aim", which covers this check).
     private boolean mxEnabled = true;
@@ -143,19 +148,73 @@ public class AimMLMX extends Check implements RotationListener, PacketReceiveLis
         }
     }
 
+    /**
+     * Spartan triple-channel RNN aggregation, routed by module name exactly like
+     * upstream: {@code m1-rnn} feeds the ck buffer (fires at 5.0), {@code m2-rnn}
+     * feeds the cl buffer (fires at 3.0), anything else (m3-rnn) joins the
+     * max-severity channel with the legacy models.
+     */
     private void dispatchRNN(List<Float> yawSnap, List<Float> pitchSnap) {
         GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(), () -> {
-            Millennium model = FactoryML.getModel(RNN_MODEL_INDEX);
-            if (model == null || RNN_MODEL_INDEX >= ClientML.MODEL_LIST.size()) return;
             try {
-                ResultML result = model.checkData(toStack(yawSnap, pitchSnap));
-                ModuleML module = ClientML.MODEL_LIST.get(RNN_MODEL_INDEX);
-                ModuleResultML moduleResult = module.getResult(result);
-                handleResult(moduleResult, Set.of(module.getName()));
+                List<ObjectML> stack = toStack(yawSnap, pitchSnap);
+                ModuleResultML finalResult = new ModuleResultML(0, FlagType.NORMAL, null);
+                Set<String> modelsThatFlagged = new HashSet<>();
+
+                for (int i = RNN_FIRST_INDEX; i < ClientML.MODEL_LIST.size(); i++) {
+                    Millennium model = FactoryML.getModel(i);
+                    if (model == null) continue;
+                    ResultML result = model.checkData(stack);
+                    ModuleML module = ClientML.MODEL_LIST.get(i);
+                    ModuleResultML moduleResult = module.getResult(result);
+                    String name = module.getName();
+
+                    if ("m1-rnn".equals(name)) {
+                        handleRnnBuffer(moduleResult, true);
+                        continue;
+                    }
+                    if ("m2-rnn".equals(name)) {
+                        handleRnnBuffer(moduleResult, false);
+                        continue;
+                    }
+                    if (moduleResult.getType() != FlagType.NORMAL) {
+                        modelsThatFlagged.add(name);
+                    }
+                    if (finalResult.getInfo() == null) {
+                        finalResult = moduleResult;
+                    } else {
+                        int finalLevel = finalResult.getType().getLevel();
+                        int tempLevel = moduleResult.getType().getLevel();
+                        if (finalLevel < tempLevel
+                                || (finalLevel == tempLevel && finalResult.getPriority() < moduleResult.getPriority())) {
+                            finalResult = moduleResult;
+                        }
+                    }
+                }
+                handleResult(finalResult, modelsThatFlagged);
             } catch (Exception e) {
                 kireiko.dev.millennium.ml.logic.Logger.error("AimMLMX RNN inference failed: " + e);
             }
         });
+    }
+
+    private void handleRnnBuffer(ModuleResultML moduleResult, boolean first) {
+        FlagType type = moduleResult.getType();
+        if (first) {
+            rnnBuf1 = Math.max(0, rnnBuf1 + RNN1Module.a(type));
+            if (type != FlagType.NORMAL && rnnBuf1 >= RNN1Module.cp) {
+                flag("ML " + type + " [m1-rnn] [buf: " + String.format("%.2f", rnnBuf1) + "] "
+                        + moduleResult.getInfo());
+                if (rnnBuf1 > RNN1Module.cp) rnnBuf1 = 4.0;
+            }
+        } else {
+            rnnBuf2 = Math.max(0, rnnBuf2 + RNN2Module.a(type));
+            if (type != FlagType.NORMAL && rnnBuf2 >= RNN2Module.cp) {
+                flag("ML " + type + " [m2-rnn] [buf: " + String.format("%.2f", rnnBuf2) + "] "
+                        + moduleResult.getInfo());
+                rnnBuf2 = 2.2;
+            }
+        }
     }
 
     private void dispatchLegacy(List<Float> yawSnap, List<Float> pitchSnap) {
